@@ -1,0 +1,1 @@
+\\10.0.5.159\PiShare\SSH\plink.exe -ssh 10.0.5.159 -P 22 -l pi -pw raspberry -m \\10.0.5.159\PiShare\SSH\Commands.txt

@@ -121,12 +121,12 @@ function journeyRequest(socket, data) {
 									var index = arma_names.indexOf(results3[0].name);
 									if (index == -1)
 									{
-										nameFIFO.push(results3[0].name);
-										dataFIFO.push({ tag: 'journeyAccepted', myData: {startStation: data["start"], endStation: data["end"], id: '' + socket.id + '', phone_number: data["phone_number"]}, start_id: results4, end_id: results5 });
+										//nameFIFO.push(results3[0].name);
+										//dataFIFO.push({ tag: 'journeyAccepted', myData: {startStation: data["start"], endStation: data["end"], id: '' + socket.id + '', phone_number: data["phone_number"], start_id: results4, end_id: results5 }});
 									}
 									else
 									{
-										arma_clients[index].send({ tag: 'journeyAccepted', myData: {startStation: data["start"], endStation: data["end"], id: '' + socket.id + '', phone_number: data["phone_number"], bluetooth_address: data["bluetooth_address"]} });
+										arma_clients[index].send({ tag: 'journeyAccepted', myData: {startStation: data["start"], endStation: data["end"], id: '' + socket.id + '', phone_number: data["phone_number"], bluetooth_address: data["bluetooth_address"], start_id: results4[0], end_id: results5[0] }});
 										//arma_clients[index].emit("journeyAccepted",{startStation: data["start"], endStation: data["end"], id: '' + socket.id + '', phone_number: data["phone_number"]});
 									}
 									socket.emit("journeyAccepted");
@@ -498,11 +498,11 @@ io_test.on("connection", function(socket){
 	
 	 socket.on('mess', function(data, ack) {
 			if (ack != undefined) {
-				ack('ping');
+				ack('ack');
 			}
-			console.log("received");
-			socket.send({ tag: 'test' });
-			//socket.send({ tag: 'test', myData: {test1: 26, test2: 'toto' } });
+			console.log("received" + data["in"]);
+			//socket.send({ tag: 'test' });
+			socket.send({ tag: 'test', myData: {test1: 26, test2: 'toto' } });
 	});
 	
 	 socket.on('disconnect', function() {
@@ -521,8 +521,8 @@ var dataFIFO = [];
 var nameFIFO = [];
 
 var io_arma = require('socket.io').listen(arma_port);
-io_arma.set('heartbeat timeout', 5000);
-io_arma.set('heartbeat interval', 1000);
+io_arma.set('heartbeat timeout', 2000);
+io_arma.set('heartbeat interval', 3000);
 console.log("Listening arma on port " + arma_port);
 
 /* Socket.IO events */
@@ -531,7 +531,11 @@ io_arma.on("connection", function(socket){
     arma_clients.push(socket);
     console.info('New arma detected : '+ socket.id);
     
-    socket.on('updateState', function(data) {
+    socket.on('updateState', function(data, ack) {
+		if (ack != undefined) {
+			ack('ack');
+		}
+
 		if (data["shuttle_state"] == 0) {
 			var sql = 'UPDATE shuttle SET state = 0 WHERE name = "' + data["name"] + '"';
 			databaseRequest(null, sql, null);
@@ -543,7 +547,11 @@ io_arma.on("connection", function(socket){
 	});
 	
 	// Associate a shuttle name with a socket at each connection
-	socket.on('nameUpdate', function(data) {
+	socket.on('nameUpdate', function(data, ack) {
+		if (ack != undefined) {
+			ack('ack');
+		}
+
 		var index = arma_clients.indexOf(socket);
 		arma_names[index] = data["name"];
 		
@@ -562,8 +570,11 @@ io_arma.on("connection", function(socket){
     });
 	
 	// Send its position to all users connected
-	socket.on('positionUpdate', function(data) {
-		
+	socket.on('positionUpdate', function(data, ack) {
+		if (ack != undefined) {
+			ack('ack');
+		}
+
 		for(var client in device_numbers) {
 			var index = Object.keys(device_numbers).indexOf(client);
 			device_clients[index].volatile.emit('position', data);
@@ -576,7 +587,11 @@ io_arma.on("connection", function(socket){
     });
 	
 	// Inform user that the current journey is completed
-	socket.on('journeyCompleted', function(data) {
+	socket.on('journeyCompleted', function(data, ack) {
+		if (ack != undefined) {
+			ack('ack');
+		}
+
 		var client = device_clients.find(function findById(_socket) {
 			return _socket.id === data["id"];
 		});
@@ -589,7 +604,11 @@ io_arma.on("connection", function(socket){
     });
 	
 	// When socket disconnects, remove it from the list:
-    socket.on('disconnect', function() {
+    socket.on('disconnect', function(data, ack) {
+		if (ack != undefined) {
+			ack('ack');
+		}
+
         var index = arma_clients.indexOf(socket);
         if (index != -1) {
 			console.info('Arma disconnected : id = ' + socket.id + ', name = ' + arma_names[index] + '');
@@ -604,7 +623,11 @@ io_arma.on("connection", function(socket){
     });
 	
 	// Inform user that the shuttle arrived
-	socket.on('shuttleArrived', function(data) {
+	socket.on('shuttleArrived', function(data, ack) {
+		if (ack != undefined) {
+			ack('ack');
+		}
+
 		var client = device_clients.find(function findById(_socket) {
 			return _socket.id === data["id"];
 		});
@@ -637,7 +660,7 @@ var io_device = socketio.listen(server);
 
 
 io_device.set('heartbeat timeout', 2000);
-io_device.set('heartbeat interval', 5000);
+io_device.set('heartbeat interval', 3000);
 console.log("Listening devices on port " + device_port);
 
 /* Socket.IO events */
@@ -680,6 +703,7 @@ io_device.on("connection", function(socket){
 	
 	// Handle journey request sent by the user
 	socket.on('journeyRequest', function(data) {
+		console.log("journeyRequested");
 		journeyRequest(socket, data);
 	});
 	
