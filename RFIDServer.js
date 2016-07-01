@@ -91,7 +91,7 @@ function findUserRequest(socket, data) {
 
         console.log('connected as id ' + connection.threadId);
         
-		var sql = 'SELECT * FROM user WHERE (first_name = "' + data["first_name"] + '") AND (last_name = "' + data["last_name"] + '") AND (UID = "' + data["UID"] + '") AND (access_level = "' + data["access_level"] + '")';
+		var sql = 'SELECT * FROM user WHERE UID = "' + data["UID"] +'"';
         connection.query(sql ,function(err, results1, field1){ 
 		
 			if (err) {
@@ -101,7 +101,7 @@ function findUserRequest(socket, data) {
 			}
 
 			if (results1.length != 0) {
-				var sql2 = 'INSERT INTO request (first_name, last_name, shuttle_name) VALUES ("' + data["first_name"] + '", "' + data["last_name"] + '", "' + data["shuttle_name"] + '")';
+				var sql2 = 'INSERT INTO request (first_name, last_name, shuttle_name) VALUES ("' + results1[0].first_name + '", "' + results1[0].last_name + '", "' + data["shuttle_name"] + '")';
 				connection.query(sql2 ,function(err, results2, field2){
 					
 					connection.release();					
@@ -110,7 +110,7 @@ function findUserRequest(socket, data) {
 						return;
 					}
 					//socket.send({ tag: 'userFound' });
-					socket.send({ tag: 'userFound', myData: data });
+					socket.send({ tag: 'userFound', myData: results1[0] });
 				});
 			}
 			else {
@@ -199,6 +199,7 @@ io_client.on("connection", function(socket){
 	});
 	
 	socket.on('findUser', function(data) {
+		console.log('requested');
 		findUserRequest(socket, data);
 	});
 	
