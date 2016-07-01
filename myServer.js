@@ -521,8 +521,8 @@ var dataFIFO = [];
 var nameFIFO = [];
 
 var io_arma = require('socket.io').listen(arma_port);
-io_arma.set('heartbeat timeout', 2000);
-io_arma.set('heartbeat interval', 3000);
+io_arma.set('heartbeat timeout', 5000);
+io_arma.set('heartbeat interval', 6000);
 console.log("Listening arma on port " + arma_port);
 
 /* Socket.IO events */
@@ -563,7 +563,7 @@ io_arma.on("connection", function(socket){
 			arma_clients[index].send(dataFIFO[index]);
 			nameFIFO.splice(index, 1);
 			dataFIFO.splice(index, 1);
-			console.info('Request sended from FIFO stack');
+			console.info('Request sent from FIFO stack');
 		}
 	
 
@@ -622,7 +622,7 @@ io_arma.on("connection", function(socket){
         }
     });
 	
-	// Inform user that the shuttle arrived
+	// Inform user that a shuttle has arrived
 	socket.on('shuttleArrived', function(data, ack) {
 		if (ack != undefined) {
 			ack('ack');
@@ -659,8 +659,8 @@ var server = https.createServer(SSLoptions).listen(device_port);
 var io_device = socketio.listen(server);
 
 
-io_device.set('heartbeat timeout', 2000);
-io_device.set('heartbeat interval', 3000);
+io_device.set('heartbeat timeout', 5000);
+io_device.set('heartbeat interval', 6000);
 console.log("Listening devices on port " + device_port);
 
 /* Socket.IO events */
