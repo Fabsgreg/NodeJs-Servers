@@ -1,0 +1,35 @@
+/*!**********************************************************************
+* \file		sam.proto
+* \date		15/06/2016
+* \version	1.0.0
+* \author	Augustin RENARD
+* \brief	Proto file.
+*			General message for sam protocol.
+*************************************************************************
+* \copyright [2004] - [2016] NAVYA\n
+*  All Rights Reserved.
+************************************************************************/
+
+syntax="proto3";
+
+message UpdateShuttle 
+{
+				string shuttleID 	= 1;
+				uint64 posID 		= 2;
+	repeated 	uint64 missions		= 3;
+}
+
+message Announce
+{
+	string id = 1;
+}
+
+message MissionState
+{
+	// TO DO
+}
+
+message Mission
+{
+	repeated uint64 missions = 1;
+}

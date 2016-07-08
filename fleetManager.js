@@ -9,6 +9,8 @@ path = require("path");
 const SERVER = 'server';
 const BROADCAST = 'broadcast';
 
+var builder = ProtoBuf.loadProtoFile(path.join(__dirname, "ressource", "general.proto")),
+    Announce = builder.build("Announce");
 
 ////////////////////////////// ARMA Client  //////////////////////////////////////
 
@@ -19,11 +21,6 @@ io_shuttle.set('heartbeat timeout', 5000);
 io_shuttle.set('heartbeat interval', 1000);
 console.log("Listening test on port " + io_shuttle_Port);
 
-var builder = ProtoBuf.loadProtoFile(path.join(__dirname, "ressource", "mission.proto")),
-    UpdateShuttle = builder.build("UpdateShuttle"),
-    AnnounceShuttle = builder.build("AnnounceShuttle"),
-    MissionState = builder.build("MissionState");
-
 var arma_clients = [];
 var arma_names = [];
 
@@ -31,7 +28,7 @@ io_shuttle.on("connection", function(socket){
 	
     arma_clients.push(socket);
 
-    socket.on('update_shuttle', function(data, ack) {
+    socket.on('UpdateShuttle', function(data, ack) {
 		if (ack != undefined) {
 			ack('ack');
 		}
@@ -42,7 +39,7 @@ io_shuttle.on("connection", function(socket){
                 thisName = arma_names[thisIndex];
             }
         else {
-            console.log('Shuttle ' + socket.id + ' is unknown, on request : update_shuttle');
+            console.log('Shuttle ' + socket.id + ' is unknown, on request : UpdateShuttle');
             return;
         }
 
@@ -51,27 +48,27 @@ io_shuttle.on("connection", function(socket){
         if (receiver == BROADCAST) {
             var i;
             for (i = 0; i < fm_clients.length; ++i) {
-                fm_clients[i].send({ tag: 'update_shuttle', myData: data["myData"] });
+                fm_clients[i].send({ tag: 'UpdateShuttle', myData: data["myData"] });
             }
-            console.log('Shuttle ' + thisName + ' requested update_shuttle to BROADCAST');
+            console.log('Shuttle ' + thisName + ' requested UpdateShuttle to BROADCAST');
         }
         else if (receiver == SERVER) {
-            console.log('Shuttle ' + thisName + ' requested update_shuttle to SERVER');
+            console.log('Shuttle ' + thisName + ' requested UpdateShuttle to SERVER');
         }
         else {
             var index = fm_names.indexOf(receiver);
             if (index != -1) {
-                fm_clients[index].send({ tag: 'update_shuttle', myData: data["myData"] });
-                console.log('Shuttle ' + thisName + ' requested update_shuttle to ' + receiver + '');
+                fm_clients[index].send({ tag: 'UpdateShuttle', myData: data["myData"] });
+                console.log('Shuttle ' + thisName + ' requested UpdateShuttle to ' + receiver + '');
             }
             else {
-                console.log('Shuttle ' + thisName + ' requested update_shuttle to UNKNOWN (' + receiver + ')');
+                console.log('Shuttle ' + thisName + ' requested UpdateShuttle to UNKNOWN (' + receiver + ')');
             }
         }
     });
 
 
-    socket.on('mission_state', function(data, ack) {
+    socket.on('Mission', function(data, ack) {
 		if (ack != undefined) {
 			ack('ack');
 		}
@@ -82,7 +79,7 @@ io_shuttle.on("connection", function(socket){
                 thisName = arma_names[thisIndex];
             }
         else {
-            console.log('Shuttle ' + socket.id + ' is unknown, on request : mission_state');
+            console.log('Shuttle ' + socket.id + ' is unknown, on request : Mission');
             return;
         }
 
@@ -91,32 +88,72 @@ io_shuttle.on("connection", function(socket){
         if (receiver == BROADCAST) {
             var i;
             for (i = 0; i < fm_clients.length; ++i) {
-                fm_clients[i].send({ tag: 'mission_state', myData: data["myData"] });
+                fm_clients[i].send({ tag: 'Mission', myData: data["myData"] });
             }
-            console.log('Shuttle ' + thisName + ' requested mission_state to BROADCAST');
+            console.log('Shuttle ' + thisName + ' requested Mission to BROADCAST');
         }
         else if (receiver == SERVER) {
-            console.log('Shuttle ' + thisName + ' requested mission_state to SERVER');
+            console.log('Shuttle ' + thisName + ' requested Mission to SERVER');
         }
         else {
             var index = fm_names.indexOf(receiver);
             if (index != -1) {
-                fm_clients[index].send({ tag: 'mission_state', myData: data["myData"] });
-                console.log('Shuttle ' + thisName + ' requested mission_state to ' + receiver + '');
+                fm_clients[index].send({ tag: 'Mission', myData: data["myData"] });
+                console.log('Shuttle ' + thisName + ' requested Mission to ' + receiver + '');
             }
             else {
-                console.log('Shuttle ' + thisName + ' requested mission_state to UNKNOWN (' + receiver + ')');
+                console.log('Shuttle ' + thisName + ' requested Mission to UNKNOWN (' + receiver + ')');
+            }
+        }
+    });
+
+
+    socket.on('MissionState', function(data, ack) {
+		if (ack != undefined) {
+			ack('ack');
+		}
+
+        var thisName;
+        var thisIndex = arma_clients.indexOf(socket);
+        if (thisIndex != -1) {
+                thisName = arma_names[thisIndex];
+            }
+        else {
+            console.log('Shuttle ' + socket.id + ' is unknown, on request : MissionState');
+            return;
+        }
+
+        var receiver = data["receiver"];
+
+        if (receiver == BROADCAST) {
+            var i;
+            for (i = 0; i < fm_clients.length; ++i) {
+                fm_clients[i].send({ tag: 'MissionState', myData: data["myData"] });
+            }
+            console.log('Shuttle ' + thisName + ' requested MissionState to BROADCAST');
+        }
+        else if (receiver == SERVER) {
+            console.log('Shuttle ' + thisName + ' requested MissionState to SERVER');
+        }
+        else {
+            var index = fm_names.indexOf(receiver);
+            if (index != -1) {
+                fm_clients[index].send({ tag: 'MissionState', myData: data["myData"] });
+                console.log('Shuttle ' + thisName + ' requested MissionState to ' + receiver + '');
+            }
+            else {
+                console.log('Shuttle ' + thisName + ' requested MissionState to UNKNOWN (' + receiver + ')');
             }
         }
     });
 	
 
-	socket.on('announce_shuttle', function(data, ack) {
+	socket.on('Announce', function(data, ack) {
 		if (ack != undefined) {
 			ack('ack');
 		}
 
-        var msg = AnnounceShuttle.decode(data["myData"]);
+        var msg = Announce.decode(data["myData"]);
 
 		var index = arma_clients.indexOf(socket);
 		arma_names[index] = msg.id;
@@ -149,11 +186,6 @@ io_fm.set('heartbeat timeout', 5000);
 io_fm.set('heartbeat interval', 1000);
 console.log("Listening test on port " + io_fm_Port);
 
-var builder = ProtoBuf.loadProtoFile(path.join(__dirname, "ressource", "mission.proto")),
-    UpdateShuttle = builder.build("UpdateShuttle"),
-    AnnounceShuttle = builder.build("AnnounceShuttle"),
-    MissionState = builder.build("MissionState");
-
 var fm_clients = [];
 var fm_names = [];
 
@@ -161,7 +193,7 @@ io_fm.on("connection", function(socket){
 	
     fm_clients.push(socket);
 
-    socket.on('update_shuttle', function(data, ack) {
+    socket.on('UpdateShuttle', function(data, ack) {
 		if (ack != undefined) {
 			ack('ack');
 		}
@@ -172,7 +204,7 @@ io_fm.on("connection", function(socket){
                 thisName = fm_names[thisIndex];
             }
         else {
-            console.log('Fm ' + socket.id + ' is unknown, on request : update_shuttle');
+            console.log('Fm ' + socket.id + ' is unknown, on request : UpdateShuttle');
             return;
         }
 
@@ -181,27 +213,27 @@ io_fm.on("connection", function(socket){
         if (receiver == BROADCAST) {
             var i;
             for (i = 0; i < arma_clients.length; ++i) {
-                arma_clients[i].send({ tag: 'update_shuttle', myData: data["myData"] });
+                arma_clients[i].send({ tag: 'UpdateShuttle', myData: data["myData"] });
             }
-            console.log('Fm ' + thisName + ' requested update_shuttle to BROADCAST');
+            console.log('Fm ' + thisName + ' requested UpdateShuttle to BROADCAST');
         }
         else if (receiver == SERVER) {
-            console.log('Fm ' + thisName + ' requested update_shuttle to SERVER');
+            console.log('Fm ' + thisName + ' requested UpdateShuttle to SERVER');
         }
         else {
             var index = arma_names.indexOf(receiver);
             if (index != -1) {
-                arma_clients[index].send({ tag: 'update_shuttle', myData: data["myData"] });
-                console.log('Fm ' + thisName + ' requested update_shuttle to ' + receiver + '');
+                arma_clients[index].send({ tag: 'UpdateShuttle', myData: data["myData"] });
+                console.log('Fm ' + thisName + ' requested UpdateShuttle to ' + receiver + '');
             }
             else {
-                console.log('Fm ' + thisName + ' requested update_shuttle to UNKNOWN (' + receiver + ')');
+                console.log('Fm ' + thisName + ' requested UpdateShuttle to UNKNOWN (' + receiver + ')');
             }
         }
     });
 
 
-    socket.on('mission_state', function(data, ack) {
+    socket.on('MissionState', function(data, ack) {
 		if (ack != undefined) {
 			ack('ack');
 		}
@@ -212,7 +244,7 @@ io_fm.on("connection", function(socket){
                 thisName = fm_names[thisIndex];
             }
         else {
-            console.log('Fm ' + socket.id + ' is unknown, on request : mission_state');
+            console.log('Fm ' + socket.id + ' is unknown, on request : MissionState');
             return;
         }
 
@@ -221,31 +253,71 @@ io_fm.on("connection", function(socket){
         if (receiver == BROADCAST) {
             var i;
             for (i = 0; i < arma_clients.length; ++i) {
-                arma_clients[i].send({ tag: 'mission_state', myData: data["myData"] });
+                arma_clients[i].send({ tag: 'MissionState', myData: data["myData"] });
             }
-            console.log('Fm ' + thisName + ' requested mission_state to BROADCAST');
+            console.log('Fm ' + thisName + ' requested MissionState to BROADCAST');
         }
         else if (receiver == SERVER) {
-            console.log('Fm ' + thisName + ' requested mission_state to SERVER');
+            console.log('Fm ' + thisName + ' requested MissionState to SERVER');
         }
         else {
             var index = arma_names.indexOf(receiver);
             if (index != -1) {
-                arma_clients[index].send({ tag: 'mission_state', myData: data["myData"] });
-                console.log('Fm ' + thisName + ' requested mission_state to ' + receiver + '');
+                arma_clients[index].send({ tag: 'MissionState', myData: data["myData"] });
+                console.log('Fm ' + thisName + ' requested MissionState to ' + receiver + '');
             }
             else {
-                console.log('Fm ' + thisName + ' requested mission_state to UNKNOWN (' + receiver + ')');
+                console.log('Fm ' + thisName + ' requested MissionState to UNKNOWN (' + receiver + ')');
             }
         }
     });
 
 
-	socket.on('announce_shuttle', function(data, ack) {
+    socket.on('Mission', function(data, ack) {
 		if (ack != undefined) {
 			ack('ack');
 		}
-        var msg = AnnounceShuttle.decode(data["myData"]);
+
+        var thisName;
+        var thisIndex = fm_clients.indexOf(socket);
+        if (thisIndex != -1) {
+                thisName = fm_names[thisIndex];
+            }
+        else {
+            console.log('Fm ' + socket.id + ' is unknown, on request : Mission');
+            return;
+        }
+
+        var receiver = data["receiver"];
+
+        if (receiver == BROADCAST) {
+            var i;
+            for (i = 0; i < arma_clients.length; ++i) {
+                arma_clients[i].send({ tag: 'Mission', myData: data["myData"] });
+            }
+            console.log('Fm ' + thisName + ' requested Mission to BROADCAST');
+        }
+        else if (receiver == SERVER) {
+            console.log('Fm ' + thisName + ' requested Mission to SERVER');
+        }
+        else {
+            var index = arma_names.indexOf(receiver);
+            if (index != -1) {
+                arma_clients[index].send({ tag: 'Mission', myData: data["myData"] });
+                console.log('Fm ' + thisName + ' requested Mission to ' + receiver + '');
+            }
+            else {
+                console.log('Fm ' + thisName + ' requested Mission to UNKNOWN (' + receiver + ')');
+            }
+        }
+    });
+
+
+	socket.on('Announce', function(data, ack) {
+		if (ack != undefined) {
+			ack('ack');
+		}
+        var msg = Announce.decode(data["myData"]);
 
 		var index = fm_clients.indexOf(socket);
 		fm_names[index] = msg.id;
