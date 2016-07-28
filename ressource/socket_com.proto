@@ -1,0 +1,38 @@
+/*!**********************************************************************
+* \file		socket_com.proto
+* \date		22/07/2016
+* \version	1.0.0
+* \author	Augustin RENARD
+* \brief	Proto file.
+*			Messages for socket lib management of clients. It allows socket.io 
+			server to manage state of connection for clients, and to warn 
+			other clients about changes.
+*************************************************************************
+* \copyright [2004] - [2016] NAVYA\n
+*  All Rights Reserved.
+************************************************************************/
+
+syntax="proto3";
+
+message NetworkStatus
+{
+	enum network_status_t {
+		CONNECTED 		= 0;
+		DISCONNECTED 	= 1;
+		RECONNECTED 	= 2;
+	}
+
+	string device = 1;
+	network_status_t value = 2;
+	uint64 last_cmd_id = 3;
+}
+
+message Announce
+{
+	NetworkStatus status = 1;
+}
+
+message NetworkEvent
+{
+	repeated NetworkStatus status = 1;
+}
