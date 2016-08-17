@@ -12,21 +12,46 @@
 
 syntax="proto3";
 
+
+////////// Android ///////////////
+
+option java_package = "navya.tech.navyatraveller";
+
+message Position
+{
+    double lat = 1;
+    double lng = 2;
+}
+
+message AndroidMission
+{
+    repeated    Position    path            	= 1;
+                uint64      duration        	= 2;    // min
+                uint64      waiting_time    	= 3;    // min
+                double      distance        	= 4;    // km
+}
+
+message onDemandMission
+{
+    string 	client 				= 1;
+    string 	start 				= 2; 
+    string 	end   				= 3;
+	string	bluetooth_address 	= 4;
+}
+
+
+//////////////////////////////////////////////////////
+
+
 message UpdateShuttle 
 {
-				string shuttleID 	= 1;
-				uint64 posID 		= 2;
-	repeated 	uint64 missions		= 3;
-}
+	string shuttleID 	= 1;
+	uint64 posID 		= 2;
 
-message Announce
-{
-	string id = 1;
-}
-
-message MissionState
-{
-	// TO DO
+	// Mission management
+	bool running		= 3;
+	uint64 last_mission	= 4;
+    Position location   = 5;
 }
 
 message Mission

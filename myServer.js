@@ -57,7 +57,7 @@ function journeyRequest(socket, data) {
 		
 		console.log('connected as id ' + connection.threadId);
 				
-		// Chech user authorization
+		// Check user authorization
 		var sql1 = 'SELECT * FROM client WHERE phone_number = ' + mysql.escape(data["phone_number"]);
 		connection.query(sql1, function(err, results1, field1){
 			if (err) {
@@ -459,7 +459,6 @@ var options = {
 	auth: {
 		user: 'developer.navya@gmail.com',
 		pass: 'kkugfbhtqhwxbwox'
-		//pass: 'ntckgrpoleicmtpw'
 	}
 };
 	
@@ -659,7 +658,7 @@ var server = https.createServer(SSLoptions).listen(device_port);
 var io_device = socketio.listen(server);
 
 
-io_device.set('heartbeat timeout', 5000);
+io_device.set('heartbeat timeout', 3000);
 io_device.set('heartbeat interval', 6000);
 console.log("Listening devices on port " + device_port);
 
@@ -680,7 +679,7 @@ io_device.on("connection", function(socket){
     });
 	
 	// When socket disconnects, remove it from the list:
-    socket.on('disconnect', function() {
+  	socket.on('disconnect', function() {
         var index = device_clients.indexOf(socket);
         if (index != -1) {
 			console.info('Device disconnected : id = ' + socket.id + ', number = ' + device_numbers[index] + '');

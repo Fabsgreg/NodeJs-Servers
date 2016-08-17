@@ -29,7 +29,7 @@ message NetworkStatus
 
 message Announce
 {
-	NetworkStatus status = 1;
+	repeated NetworkStatus status = 1;
 }
 
 message NetworkEvent
